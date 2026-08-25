@@ -1,0 +1,12 @@
+# Compiled programs. Ctrl+Shift+B and the build-and-run task name them *.exe,
+# so they are easy to spot and never get committed by accident. (The C/C++
+# extension's play button uses its own settings and names the program with no
+# extension at all -- that one still has to be deleted by hand.)
+*.exe
+*.out
+*.o
+a.out
+
+# Editor / OS noise
+.DS_Store
+*.swp

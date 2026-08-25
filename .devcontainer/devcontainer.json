@@ -1,0 +1,56 @@
+{
+  // ECE 229 — every student's Codespace starts here, so everyone gets the same
+  // compiler, the same warnings, and the same tools. If you are a student: you
+  // never need to edit this file.
+  "name": "ECE 229 — C Programming",
+  "image": "mcr.microsoft.com/devcontainers/cpp:1-debian-12",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools-extension-pack"
+      ],
+      "settings": {
+        "C_Cpp.default.cStandard": "c99",
+        "C_Cpp.default.compilerArgs": ["-Wall", "-Wextra"],
+        "files.eol": "\n",
+        "files.trimTrailingWhitespace": true,
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.rulers": [80],
+        "terminal.integrated.defaultProfile.linux": "bash",
+
+        // ---------------------------------------------------------------
+        // Copilot is OFF in this workspace.
+        //
+        // You learn to program by writing programs. Copilot will happily
+        // produce a finished lab from a comment, which feels like progress
+        // and teaches nothing -- and the exams are on paper. Donna is here
+        // instead: she explains, diagnoses, and asks questions, but will not
+        // write your assignment for you.
+        //
+        // chat.disableAIFeatures is the one that matters: turning off
+        // github.copilot.enable only stops the grey inline suggestions, and
+        // leaves Copilot Chat and Agent mode sitting in the sidebar ready to
+        // write the whole lab.
+        //
+        // (Instructor: set chat.disableAIFeatures to false to allow it.)
+        // ---------------------------------------------------------------
+        "chat.disableAIFeatures": true,
+        "chat.agent.enabled": false,
+        "github.copilot.enable": {
+          "*": false,
+          "c": false,
+          "cpp": false
+        }
+      }
+    }
+  },
+
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  // The `code` CLI cannot install an extension until the editor has attached,
+  // so the panel install runs here rather than in postCreateCommand.
+  "postAttachCommand": "bash .devcontainer/attach.sh",
+  "waitFor": "postCreateCommand",
+  "remoteUser": "vscode"
+}

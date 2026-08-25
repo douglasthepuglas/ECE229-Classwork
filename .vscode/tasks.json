@@ -1,0 +1,40 @@
+{
+  // Press Ctrl+Shift+B (Cmd+Shift+B on a Mac) to build the file you're editing.
+  // The flags match what the course uses everywhere else, so the warnings you
+  // see here are the warnings your instructor sees.
+  //
+  // These are plain "shell" tasks on purpose. A "cppbuild" task here makes the
+  // C/C++ extension's play button fail with "Could not find the task", so the
+  // play button is left to build with its own settings.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build (gcc -Wall)",
+      "type": "shell",
+      "command": "gcc",
+      "args": [
+        "-Wall",
+        "-Wextra",
+        "-std=c99",
+        "-g",
+        "${file}",
+        "-o",
+        "${fileDirname}/${fileBasenameNoExtension}.exe",
+        "-lm"
+      ],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$gcc"],
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "detail": "Compile the open .c file with the course's warning flags."
+    },
+    {
+      "label": "build and run",
+      "type": "shell",
+      "command": "gcc -Wall -Wextra -std=c99 -g '${file}' -o '${fileDirname}/${fileBasenameNoExtension}.exe' -lm && '${fileDirname}/${fileBasenameNoExtension}.exe'",
+      "group": "build",
+      "problemMatcher": ["$gcc"],
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "detail": "Compile the open .c file and run it if it compiled."
+    }
+  ]
+}

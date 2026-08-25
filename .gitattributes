@@ -1,0 +1,4 @@
+# Students may clone this on Windows; these run on Linux inside the Codespace.
+*.sh   text eol=lf
+tools/donna text eol=lf
+*.vsix binary

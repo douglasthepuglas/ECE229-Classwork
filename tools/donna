@@ -1,0 +1,226 @@
+#!/usr/bin/env python3
+"""Donna — the ECE 229 course assistant, in your terminal.
+
+    donna "why does my loop print nothing?"
+    gcc -Wall lab03/main.c 2>&1 | donna      # explain what the compiler just said
+    donna compile lab03/main.c               # compile it and ask about the result
+    donna link ABC123                        # connect this Codespace to your account
+
+Authentication is automatic inside a Codespace: we use the GitHub token that is
+already there. Nothing to install, no password to type.
+"""
+
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import textwrap
+import urllib.error
+import urllib.request
+
+# Donna writes UTF-8 (including the occasional emoji). Codespaces is UTF-8, but
+# a Windows console defaults to cp1252 and would crash on the first one.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
+API = os.environ.get("DONNA_API", "https://ece229.billwestrick.com/api/chat")
+CFLAGS = ["-Wall", "-Wextra", "-std=c99"]
+TIMEOUT = 90
+
+# Colour only when we are actually talking to a terminal, so piping stays clean.
+TTY = sys.stdout.isatty()
+BOLD = "\033[1m" if TTY else ""
+DIM = "\033[2m" if TTY else ""
+CYAN = "\033[36m" if TTY else ""
+YELLOW = "\033[33m" if TTY else ""
+OFF = "\033[0m" if TTY else ""
+
+
+def die(message, hint=None):
+    print(f"{YELLOW}{message}{OFF}", file=sys.stderr)
+    if hint:
+        print(hint, file=sys.stderr)
+    sys.exit(1)
+
+
+def github_token():
+    """The token a Codespace already has. gh first: it is the student's own
+    identity, whereas GITHUB_TOKEN is the repo-scoped one."""
+    if shutil.which("gh"):
+        try:
+            out = subprocess.run(["gh", "auth", "token"], capture_output=True,
+                                 text=True, timeout=15)
+            if out.returncode == 0 and out.stdout.strip():
+                return out.stdout.strip()
+        except (subprocess.SubprocessError, OSError):
+            pass
+    for var in ("GITHUB_TOKEN", "GH_TOKEN"):
+        if os.environ.get(var):
+            return os.environ[var]
+    die("I couldn't find your GitHub sign-in.",
+        "Inside a Codespace this should be automatic. Try running:  gh auth login")
+
+
+def ask(message, workspace=None):
+    payload = {"message": message, "page": "codespaces"}
+    if workspace:
+        payload["workspace"] = workspace
+    request = urllib.request.Request(
+        API,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "content-type": "application/json",
+            # Not Authorization: that header carries SigV4 meaning on the
+            # Lambda Function URL behind this endpoint.
+            "x-donna-token": github_token(),
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+            return json.loads(response.read().decode("utf-8")).get("reply", "")
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", "replace")
+        try:
+            detail = json.loads(body).get("error", body)
+        except json.JSONDecodeError:
+            detail = body
+        if e.code == 401:
+            die("I don't know who you are yet.",
+                "Sign in at https://ece229.billwestrick.com, type 'link' in the chat\n"
+                "with me there, then run:  donna link YOURCODE")
+        die(f"Donna couldn't answer ({e.code}): {detail}")
+    except urllib.error.URLError as e:
+        die(f"I couldn't reach the course site: {e.reason}",
+            "Check your network connection and try again.")
+
+
+def render(text):
+    """Markdown to something readable in a terminal. Deliberately minimal --
+    fenced code indented, inline code and bold highlighted, everything else
+    wrapped to the window."""
+    width = min(shutil.get_terminal_size((80, 24)).columns, 100)
+    out = []
+    for i, chunk in enumerate(re.split(r"```[a-zA-Z]*\n?", text)):
+        if i % 2:                                     # inside a fence
+            for line in chunk.rstrip().split("\n"):
+                out.append(f"{DIM}  |{OFF} {CYAN}{line}{OFF}")
+            out.append("")
+            continue
+        for para in chunk.split("\n"):
+            if not para.strip():
+                out.append("")
+                continue
+            para = re.sub(r"\*\*([^*]+)\*\*", BOLD + r"\1" + OFF, para)
+            para = re.sub(r"`([^`]+)`", CYAN + r"\1" + OFF, para)
+            indent = "  " if para.lstrip().startswith(("-", "*", "•")) else ""
+            out.extend(textwrap.wrap(para, width=width, subsequent_indent=indent) or [""])
+    return "\n".join(out).strip("\n")
+
+
+def read_source(path):
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
+            return f.read()
+    except OSError as e:
+        die(f"I couldn't read {path}: {e.strerror}")
+
+
+def compile_and_ask(path, question=None):
+    """Compile the file the way the class does, then hand Donna the code and
+    whatever gcc said about it."""
+    if not os.path.exists(path):
+        die(f"There's no file called {path} here.",
+            "Check the name, or run 'ls' to see what's in this folder.")
+    source = read_source(path)
+    with tempfile.TemporaryDirectory() as tmp:
+        binary = os.path.join(tmp, "prog")
+        result = subprocess.run(["gcc", *CFLAGS, path, "-o", binary, "-lm"],
+                                capture_output=True, text=True, timeout=60)
+    diagnostics = result.stderr.strip()
+    ok = result.returncode == 0
+
+    if ok and not diagnostics and not question:
+        print(f"{BOLD}{path} compiles cleanly, no warnings.{OFF} Nothing for me to explain!")
+        print(f"{DIM}Ask me something specific with:  donna \"your question\"{OFF}")
+        return
+
+    if question:
+        message = question
+    elif ok:
+        message = "It compiles, but I get these warnings. What do they mean?"
+    else:
+        message = "Why won't this compile?"
+
+    workspace = {
+        "code": source[:8000],
+        "fileName": path,
+        "compileOk": ok,
+        "diagnostics": diagnostics[:4000],
+    }
+    print(render(ask(message, workspace)))
+
+
+USAGE = """Donna — your ECE 229 course assistant.
+
+  donna "why does my loop print nothing?"     ask a question
+  gcc -Wall lab03/main.c 2>&1 | donna         explain what the compiler said
+  donna compile lab03/main.c                  compile it, then ask about the result
+  donna compile lab03/main.c "is this loop right?"
+  donna link ABC123                           connect this Codespace to your account
+
+Get a link code by signing in at https://ece229.billwestrick.com and typing
+'link' in the chat with Donna.
+"""
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        # With no arguments we may still be the right end of a pipe.
+        if argv or sys.stdin.isatty():
+            print(USAGE)
+            return
+
+    if argv and argv[0] == "link":
+        if len(argv) < 2:
+            die("Which code?", "Usage:  donna link ABC123")
+        print(render(ask(f"link {argv[1]}")))
+        return
+
+    if argv and argv[0] == "compile":
+        if len(argv) < 2:
+            die("Which file?", "Usage:  donna compile lab03/main.c")
+        compile_and_ask(argv[1], " ".join(argv[2:]) or None)
+        return
+
+    question = " ".join(argv).strip()
+
+    # Piped input: the compiler output (or anything else) the student just saw.
+    piped = "" if sys.stdin.isatty() else sys.stdin.read().strip()
+    if piped:
+        workspace = {"code": "", "diagnostics": piped[:4000]}
+        # Attach the source when the message names a .c file, so she can look at
+        # the line the compiler is complaining about instead of guessing.
+        match = re.search(r"([\w./-]+\.c)", piped)
+        if match and os.path.exists(match.group(1)):
+            workspace["code"] = read_source(match.group(1))[:8000]
+            workspace["fileName"] = match.group(1)
+            workspace["compileOk"] = "error" not in piped.lower()
+        print(render(ask(question or "What is this telling me?", workspace)))
+        return
+
+    if not question:
+        print(USAGE)
+        return
+    print(render(ask(question)))
+
+
+if __name__ == "__main__":
+    try:
+        main(sys.argv[1:])
+    except KeyboardInterrupt:
+        sys.exit(130)
