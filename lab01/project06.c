@@ -1,5 +1,11 @@
-#include <stdio.h>
+/**************************************************
+* Author: Douglas Cannizzaro
+* Lab: exercise 6 page 35
+* Description: Compute same polynomial from exercise 5 page 35 but using
+*              Horner's Rule.
+* ***********************************************/
 
+#include <stdio.h>
 
 int main(void)
 {
