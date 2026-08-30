@@ -33,6 +33,16 @@ bool check_homogeneity(int array[], int size_array) {
     return true;
 }
 
+void not_magic() {
+    printf("Not a magic square :(\n\n");
+    return;
+}
+
+void magic() {
+    printf("Magic square :)\n\n");
+    return;
+}
+
 int main(void)
 {
     // Use matrix for easier math with i indices for rows and j indices for
@@ -60,12 +70,6 @@ int main(void)
     for(int i = 0; i <= 3; i++) {
         for(int j = 0; j <= 3; j++) {
             row_sums[i] += input_nums[i][j];
-        }
-    }
-
-    // Do the same for column sums, swapping the positions of i and j
-    for(int i = 0; i <= 3; i++) {
-        for(int j = 0; j <= 3; j++) {
             col_sums[j] += input_nums[i][j];
         }
     }
@@ -81,13 +85,6 @@ int main(void)
     for(int k = 0; k <= 3; k++) {
         diag_sum[1] += input_nums[k][3 - k];
     }
-
-    // defunct code optimized by new "Display full grid" section left in for
-    // demonstration of improvement
-    // printf("\n"); // Add space between entries above
-    // for(int i = 0; i <= 3; i++) {
-    //     printf("%d  %d  %d  %d\n\n", input_nums[i][0], input_nums[i][1], input_nums[i][2], input_nums[i][3]);
-    // }
 
     // Display full grid; iterate over colums then rows
     printf("\n"); // Add space between entries above
@@ -106,22 +103,27 @@ int main(void)
     printf("Diagonal sums: %d %d\n\n", diag_sum[0], diag_sum[1]);
 
     // Check and display if grid is a magic square
-    if(!check_homogeneity(row_sums, 4)) {
-        printf("Not a magic square :(\n\n");
+    if(row_sums[0] != col_sums[0]) {
+        not_magic();
+    }
+    else if(col_sums[0] != row_sums[0]) {
+        not_magic();
+    }
+    else if(!check_homogeneity(row_sums, 4)) {
+        not_magic();
     }
     else if(!check_homogeneity(col_sums, 4)) {
-        printf("Not a magic square :(\n\n");
+        not_magic();
     }
     else if(!check_homogeneity(diag_sum, 2)) {
-        printf("Not a magic square :(\n\n");
+        not_magic();
     }
     else {
-        printf("Magic square :)\n\n");
+        magic();
     }
 
     return(0);
 }
 /* Side note (if the reader made it this far), this is legitemately the best
    code I have ever written and doing this gave me a bigger dopamine high than
-   instagram reels has ever given me.
-*/
+   instagram reels has ever given me. */
