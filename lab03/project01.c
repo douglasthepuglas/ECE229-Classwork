@@ -42,10 +42,7 @@ int main(void)
         if (month > 12 || month < 1) {
             printf("Invalid month\n\n");
 
-        } else {
-            break;
-
-        }
+        } else {break;}
     }
 
     while (1) {
@@ -63,24 +60,22 @@ int main(void)
         } else {break;}
     }
 
-
-
-    if (leap_year) {
-        printf("\n%d is a leap year\n", year);
-    } else {
-        printf("\n%d is not a leap year \n", year);
-    }
-
-    int no_of_days = 0;
-
-    for (int i = 0; i < month - 1 /*index correction*/; i++) {
+    int no_of_days = 0; // days into year
+    for (int i = 0; i < (month - 1); i++) {
         no_of_days += month_lengths[i];
     }
 
     if (leap_year && (month > 2)) {
         no_of_days += 1;
     }
+    if (leap_year) {
+        printf("\n%d is a leap year\n", year);
 
+    } else {
+        printf("\n%d is not a leap year \n", year);
+    }
+
+    // add number of days into current month to total days into year.
     no_of_days += day;
 
     printf("%d/%d/%d is %d days into the year\n\n", month, day, year, no_of_days);
