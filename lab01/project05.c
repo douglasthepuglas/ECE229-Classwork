@@ -3,7 +3,7 @@
 * Lab: exercise 5 page 35
 * Description: Evalueates polynomial 3x^5 + 2x^4 - 5x^3 - x^2 + 7x - 6
 *              for input x
-* ***********************************************/
+* ************************************************/
 
 #include <stdio.h>
 
