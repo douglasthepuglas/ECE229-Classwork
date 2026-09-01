@@ -98,9 +98,24 @@ int main(void)
     printf("\n"); // cushion between proceeding section
 
     // Display sums of each row, column, and diagonal
-    printf("Row sums: %d  %d  %d  %d\n", row_sums[0], row_sums[1], row_sums[2], row_sums[3]);
-    printf("Column sums: %d  %d  %d  %d\n", col_sums[0], col_sums[1], col_sums[2], col_sums[3]);
-    printf("Diagonal sums: %d %d\n\n", diag_sum[0], diag_sum[1]);
+    printf("Row sums: ");
+    for(int i = 0; i <= 3; i++) {
+        printf("%d  ", row_sums[i]);
+    }
+
+    printf("\n");
+
+    printf("Column sums: ");
+    for(int i = 0; i <= 3; i++) {
+        printf("%d  ", col_sums[i]);
+    }
+    printf("\n");
+
+    printf("Diagonal sums: ");
+    for(int i = 0; i <= 1; i++) {
+        printf("%d  ", diag_sum[i]);
+    }
+    printf("\n");
 
     // Check and display if grid is a magic square
     if(row_sums[0] != col_sums[0]) {

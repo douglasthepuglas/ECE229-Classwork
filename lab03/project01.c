@@ -11,7 +11,7 @@
 
 // Definitions done exclusively for readability
 #define JAN 31
-#define FEB 28 // leap year will add 1 if applicable
+#define FEB 28 // 1 day added separate for leap years with dates past 2/28
 #define MAR 31
 #define APR 30
 #define MAY 31
@@ -26,7 +26,6 @@ int month_lengths[12] = {JAN, FEB, MAR, APR, MAY, JUN, JUL, AUG, SEP, OCT, NOV, 
 
 int main(void)
 {
-   // months =
     int month = 0;
     int day = 0;
     int year = 0;
@@ -36,7 +35,7 @@ int main(void)
 
     bool leap_year = !(year % 4);
 
-    while(1) {
+    while (1) {
         printf("Enter month: ");
         scanf("%d", &month);
 
@@ -52,30 +51,39 @@ int main(void)
     while (1) {
         printf("Enter day: ");
         scanf("%d", &day);
-
-        if (day > 31 || day < 1) {
+        if (month != 2 && day > month_lengths[month - 1]) {
             printf("Invalid day\n\n");
 
-        } else if (!leap_year && month == 2 && day > 28) {
+        } else if ((day > month_lengths[month-1]) && !leap_year) {
             printf("Invalid day\n\n");
 
         } else if (leap_year && month == 2 && day > 29) {
             printf("Invalid day\n\n");
 
-        } else if (day > 30 && (month == 4 || month == 6 || month == 9 || 11)) {
-            printf("Invalid day\n\n");
-
-        } else {
-            break;
-
-        }
+        } else {break;}
     }
 
-    if(leap_year) {
-        printf("%d is a leap year\n", year);
+
+
+    if (leap_year) {
+        printf("\n%d is a leap year\n", year);
     } else {
-        printf("%d is not a leap year \n", year);
+        printf("\n%d is not a leap year \n", year);
     }
+
+    int no_of_days = 0;
+
+    for (int i = 0; i < month - 1 /*index correction*/; i++) {
+        no_of_days += month_lengths[i];
+    }
+
+    if (leap_year && (month > 2)) {
+        no_of_days += 1;
+    }
+
+    no_of_days += day;
+
+    printf("%d/%d/%d is %d days into the year\n\n", month, day, year, no_of_days);
 
     return(0);
 }
