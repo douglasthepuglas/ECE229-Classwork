@@ -66,7 +66,7 @@ int main(void)
     }
 
     if (leap_year && (month > 2)) {
-        no_of_days += 1;
+        no_of_days += leap_year;
     }
     if (leap_year) {
         printf("\n%d is a leap year\n", year);
