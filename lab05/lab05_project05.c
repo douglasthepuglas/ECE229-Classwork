@@ -11,10 +11,9 @@
 // toupper
 
 char *letters[] = {"AEILNORSTU", "DG", "BCMP", "FHVWY", "K", "JX", "QZ"};
-int values[]     = {     1,        2,     3,      4,     5,    8,   10 };
+int values[]    = {     1,        2,     3,      4,      5,    8,   10 };
 
 int value_of_word = 0;
-
 int letter_found_flag = 0;
 
 
