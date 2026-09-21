@@ -61,7 +61,7 @@ int main(void) {
 
     printf("Enter a phrase to be B1ffinated: \n");
 
-    // Calling get_sentence even as an initializer not only gets the sentence,
+    // Calling get_sentence even as an initializer gets the sentence,
     // but since it returns the message length as an int that we need to know,
     // it simplifies the code to double the function call's purpose.
     int size_of_message = get_sentence(message, BUFFER_SIZE);
