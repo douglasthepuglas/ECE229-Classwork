@@ -84,7 +84,6 @@ int main(void) {
         array[current_x][current_y] = current_letter;
         current_letter++; // ASCII is cool
 
-        print_matrix(array);
         if (NO_LEFT && NO_UP && NO_RIGHT && NO_DOWN) {
             print_matrix(array);
             return(0);
