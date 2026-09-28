@@ -5,6 +5,7 @@
  * ***********************************************/
 
 #include "maze.h"
+#include <stdio.h>
 
 
 /* Fill the whole maze with wall, then carve the paths out of it.
@@ -26,8 +27,8 @@
 int next_h = 1;
 int next_w = 1;
 
-// Reused and modified code from random walk activity
-void get_next_cell(int x, int y) {
+void get_next_cell(int x, int y)
+{
     int next_direction = rand() % 2;
     int inc_or_dec = rand() % 2;
 
@@ -58,28 +59,43 @@ void init_maze(int h, int w, char maze[h][w])
     int current_h = 1;
     int current_w = 1;
 
-    // I love that I know how to use stacks properly now.
-    int path_stack[(h/2) * (w/2)];
-    int path_pos = 0;
-
-    while(1) {
+    int path_stack_w[h/2 * w/2];
+    int path_stack_h[h/2 * w/2];
+    int stack_pos = 0;
+    while(1)
+    {
         maze[current_h][current_w] = PATH;
 
-        if (NO_LEFT && NO_UP && NO_RIGHT && NO_DOWN) {
-            return;
+        if (NO_LEFT && NO_UP && NO_RIGHT && NO_DOWN)
+        {
+            current_h = path_stack_h[stack_pos];
+            current_w = path_stack_w[stack_pos];
+            --stack_pos;
 
-        } else {
-            while (1) {
+        } else
+        {
+            while (1)
+            {
                 get_next_cell(current_w, current_h);
-                if ((1 <= next_w && next_w < w - 1) && (1 <= next_h && next_h < h - 1) && (maze[next_h][next_w] == WALL)) {
+                if ((1 <= next_w && next_w < w - 1) && (1 <= next_h && next_h < h - 1) && (maze[next_h][next_w] == WALL))
+                {
                     maze[next_h][next_w] = PATH;
                     maze[(next_h - current_h) / 2 + current_h][(next_w - current_w) / 2 + current_w] = PATH;
+
+                    ++stack_pos;
+                    path_stack_w[stack_pos] = current_w;
+                    path_stack_h[stack_pos] = current_h;
 
                     current_w = next_w;
                     current_h = next_h;
                     break;
                 }
             }
+        }
+
+        if (stack_pos == 0) // Stack position will only be zero when every cell
+        {                   // has been visited, else there is still a path to follow.
+            return;
         }
     }
 

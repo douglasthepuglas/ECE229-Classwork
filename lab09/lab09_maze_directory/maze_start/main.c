@@ -55,8 +55,8 @@ int main(void)
     if (!solve(rows, cols, maze, 1, 1))
         printf("No way through -- check that the maze was carved correctly.\n");
 
-    //print_maze(rows, cols, maze);
-    printf("done");
+    print_maze(rows, cols, maze);
+    printf("done\n");
 
     return 0;
 }
