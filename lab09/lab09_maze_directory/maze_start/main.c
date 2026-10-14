@@ -36,6 +36,7 @@ int main(void)
     // a block of its own. That only works out if both sizes are even.
     width  += width  % 2;
     height += height % 2;
+    printf ("%d x %d (h x w)\n", height, width);
 
     // The array is one bigger than the maze in each direction, for the wall
     // around the outside. Keeping that wall in the array is what lets the

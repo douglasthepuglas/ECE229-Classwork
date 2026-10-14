@@ -25,10 +25,10 @@
  * The shape is here; the recursion is yours. */
 
 
-#define LEFT maze[row][col - 1] == PATH
-#define UP maze[row - 1][col] == PATH
+#define LEFT  maze[row][col - 1] == PATH
+#define UP    maze[row - 1][col] == PATH
 #define RIGHT maze[row][col + 1] == PATH
-#define DOWN maze[row + 1][col] == PATH
+#define DOWN  maze[row + 1][col] == PATH
 
 bool solve(int h, int w, char maze[h][w], int row, int col)
 {

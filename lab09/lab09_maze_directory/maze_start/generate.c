@@ -27,6 +27,15 @@
 int next_h = 1;
 int next_w = 1;
 
+// *Douglas
+// Essentially every part of my contribution was cannibalized from the random
+// walk lab, only moving by two cells in the array when carving.
+// I added a stack to the logic to store the path taken to retrace until a valid
+// location for a branch to form off the main path after the algorithm hits a
+// dead end.
+//
+// I'm only adding my comments as a block because I've been through the ringer
+// and don't have time to go back through "line by line."
 void get_next_cell(int x, int y)
 {
     int next_direction = rand() % 2;
