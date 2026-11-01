@@ -19,6 +19,8 @@
 #include <ctype.h>
 #include <stdbool.h>
 
+#define IN_BUFF_SIZE 21
+
 // Useful defines:
 // enum used for the 4 directions. These double as the subscripts into a room's
 // exit[] array, so exit[N] is always the way north no matter what order they
@@ -251,12 +253,37 @@ void game_help(void)
    lines long. Write it as its own function: you will want it again for the
    item names in GET and DROP.
    --------------------------------------------------------------------------- */
+// struct item obj[] = {
+//   { "Spoon", &map[KITCHEN] },
+//   { "Napkin", &map[DINING_ROOM] },
+//   { "Soup", &map[PANTRY] },
+//   { "Bowl", &map[LIVING_ROOM] },
+//   { "Letter Opener", &map[OFFICE] },
+//   { "Pocket Fluff", NULL },
+//   { NULL, NULL } // null item to flag the end of the list
+// };
+// enum command { QUIT, HELP, GO, INVENTORY, LOOK, GET, DROP, UNKNOWN };
 enum command get_command(void)
 {
-  // TBD: all of the above.
-  //
-  // Until then this returns QUIT, which is why the game ends the moment it
-  // starts. That is also your first test: once you are reading a line and
-  // returning something else, the loop in main() starts answering you.
+  char in_buffer[IN_BUFF_SIZE];
+  char in_command[sizeof("INVENTORY")] = {0};  // INVENTORY is largest, no need larger buffer
+  char in_item[sizeof("Letter Opener")] = {0}; // ^^ but largest item
+  char rejects[] = " \n";
+
+  if(fgets(in_buffer, IN_BUFF_SIZE, stdin) == NULL || strlen(in_buffer - 1) != '\0') {
+    printf("Critical failure, input too long.\n");
+    return QUIT;
+  }
+
+  // Split input to command and item, checking for validity Behavior works for cases without object,
+  // resulting in empty item string.
+  int len_command = strcspn(in_buffer, rejects);
+  strncpy(in_command, in_buffer, len_command);
+  in_command[len_command] = '\0';
+  printf("%s\n", in_command);
+
+  strncpy(in_item, (in_buffer + len_command + 1), IN_BUFF_SIZE - len_command);
+  printf("%s", in_item);
+
   return QUIT;
 }
