@@ -97,6 +97,7 @@ struct room map[] = {
 //
 //     for (int i = 0; obj[i].name != NULL; i++) ...
 //
+
 struct item obj[] = {
   { "Spoon", &map[KITCHEN] },
   { "Napkin", &map[DINING_ROOM] },
@@ -156,9 +157,12 @@ int main(void) {
         break;
 
       case INVENTORY:
-        // TBD: list the items whose location is NULL, or say they are carrying
-        // nothing.
-        printf("(inventory: not written yet)\n");
+        printf("You are currently holding:\n");
+        for (int i = 0; obj[i].name != NULL; ++i) {
+            if (obj[i].location == NULL) {
+                printf("%s  ", obj[i].name);
+            }
+        }
         break;
 
       case GET:
@@ -265,25 +269,38 @@ void game_help(void)
 // enum command { QUIT, HELP, GO, INVENTORY, LOOK, GET, DROP, UNKNOWN };
 enum command get_command(void)
 {
-  char in_buffer[IN_BUFF_SIZE];
-  char in_command[sizeof("INVENTORY")] = {0};  // INVENTORY is largest, no need larger buffer
-  char in_item[sizeof("Letter Opener")] = {0}; // ^^ but largest item
-  char rejects[] = " \n";
-
-  if(fgets(in_buffer, IN_BUFF_SIZE, stdin) == NULL || strlen(in_buffer - 1) != '\0') {
+  if(fgets(command_buffer, IN_BUFF_SIZE, stdin) == NULL) {
     printf("Critical failure, input too long.\n");
     return QUIT;
   }
 
-  // Split input to command and item, checking for validity Behavior works for cases without object,
-  // resulting in empty item string.
-  int len_command = strcspn(in_buffer, rejects);
-  strncpy(in_command, in_buffer, len_command);
-  in_command[len_command] = '\0';
-  printf("%s\n", in_command);
+  for (int i = 0; i < IN_BUFF_SIZE - 1; ++i) {
+    command_buffer[i] = tolower(command_buffer[i]);
+  }
 
-  strncpy(in_item, (in_buffer + len_command + 1), IN_BUFF_SIZE - len_command);
-  printf("%s", in_item);
+  int len_input = strcspn(command_buffer, "\n");
+  command_buffer[len_input] = '\0';
+
+  // Extract verb
+  int len_verb = strcspn(command_buffer, " ");
+  char verb_tmp[10] = {0};
+  strncpy(verb_tmp, command_buffer, len_verb);
+  verb = verb_tmp;
+
+  // Extract noun
+  noun = command_buffer + len_verb;
+
+  // Return proper command
+  char *command_strings[UNKNOWN] = {"quit", "help", "go", "inventory", "look", "get", "drop"};
+  for (enum command i = QUIT; i < UNKNOWN; ++i) {
+    if (!strcmp(verb, command_strings[i])) {
+        return i;
+    }
+  }
+
+  if (strlen(verb) - 1) {
+    return UNKNOWN;
+  }
 
   return QUIT;
 }
