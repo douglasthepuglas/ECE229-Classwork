@@ -19,13 +19,14 @@
 #include <ctype.h>
 #include <stdbool.h>
 
-#define IN_BUFF_SIZE 21
+#define MAX_CHARS 100 // including terminator
 
 // Useful defines:
 // enum used for the 4 directions. These double as the subscripts into a room's
 // exit[] array, so exit[N] is always the way north no matter what order they
 // are written in.
 enum direction { N, E, S, W };
+const char *directions[] = { "North", "East", "South", "East" };
 
 // The rooms, so everything below can say which room it means by name instead
 // of by number. A new room goes in both this enum and the map[] below, but
@@ -114,13 +115,13 @@ void game_help(void);    // prints basic instructions for use
 
 // command proc
 enum command get_command(void); // returns QUIT when the player is done
-char command_buffer[100]; // store input from user
+char command_buffer[MAX_CHARS]; // store input from user
 char *verb;  // current command verb, as they typed it
 char *noun;  // the rest of the line after the verb, or NULL if there was none
 
 
 // Globals...
-struct room *player_location;
+struct room *player_location = LIVING_ROOM;
 
 int main(void) {
 
@@ -139,30 +140,38 @@ int main(void) {
         game_help();
         break;
 
-      // The five below are the lab. Each one prints a placeholder for now, so
-      // you can see that the command and the noun arrived intact; delete the
-      // printf as you write the real thing.
-
       case GO:
-        // TBD: work out which direction the noun names, then follow
-        // player_location->exit[that direction] if it is not NULL. Say where
-        // they ended up, or that they can't go that way.
-        printf("(go: not written yet, noun = \"%s\")\n", noun ? noun : "(none)");
+        enum direction chosen_direction;
+        for (int i = N; i <= W; ++i) {
+          if (!strcmp(noun, directions[i])) {
+            chosen_direction = i;
+            break;
+          }
+        }
+
+        if (player_location -> exit[chosen_direction] != NULL) {
+          player_location = player_location -> exit[chosen_direction];
+          printf("You are in the %s\n\n", player_location -> name);
+        }
         break;
 
       case LOOK:
-        // TBD: name the room, the items whose location is this room, and the
-        // directions whose exit is not NULL.
-        printf("(look: not written yet)\n");
+        printf("You are in the %s.\nAvailable directions to travel: ", player_location -> name);
+        for (int i = N; i <= W; ++i) {
+          if (player_location -> exit[i] != NULL) {
+            printf("%s ", directions[i]);
+          }
+        }
+        printf("\n\n");
         break;
 
       case INVENTORY:
-        printf("You are currently holding:\n");
+        printf("You have: ");
         for (int i = 0; obj[i].name != NULL; ++i) {
             if (obj[i].location == NULL) {
                 printf("%s  ", obj[i].name);
             }
-        }
+          }
         break;
 
       case GET:
@@ -179,7 +188,8 @@ int main(void) {
 
       case UNKNOWN:
       default:
-        printf("I don't know how to \"%s\". Type help for help.\n", verb);
+        // determine correct error; strcmp returns false for empty input, true if different
+        (strcmp(verb, "")) ? printf("I don't know how to \"%s\". Type help for help.\n\n", verb) : printf("No command entered. Type help for help\n\n");
         break;
     }
   }
@@ -199,10 +209,19 @@ void init_game(void)
 
 void game_help(void)
 {
-  printf("\nHere's how to play\n");
-  // TBD: Add basic instruction text. enum command above is the list of words
-  // you need to describe.
+  // enum command { QUIT, HELP, GO, INVENTORY, LOOK, GET, DROP, UNKNOWN };
+  printf("\n"
+           "Enter command at \">> {Command}\"\n\n"
 
+           "Commands:\n"
+           "  Help:           Display these instructions again.\n"
+           "  Go [direction]: Move to area in that direction if possible.\n"
+           "  Inventory:      Check what you are carrying.\n"
+           "  Look:           Check your surroundings.\n"
+           "  Get [object]:   Add object to your inventory.\n"
+           "  Drop [object]:  Remove object from your inventory.\n"
+           "  Quit:           Exit game.\n\n"
+          );
   return;
 }
 
@@ -269,12 +288,13 @@ void game_help(void)
 // enum command { QUIT, HELP, GO, INVENTORY, LOOK, GET, DROP, UNKNOWN };
 enum command get_command(void)
 {
-  if(fgets(command_buffer, IN_BUFF_SIZE, stdin) == NULL) {
+  printf(">> ");
+  if(fgets(command_buffer, MAX_CHARS, stdin) == NULL) {
     printf("Critical failure, input too long.\n");
     return QUIT;
   }
 
-  for (int i = 0; i < IN_BUFF_SIZE - 1; ++i) {
+  for (int i = 0; i < MAX_CHARS; ++i) {
     command_buffer[i] = tolower(command_buffer[i]);
   }
 
@@ -283,12 +303,15 @@ enum command get_command(void)
 
   // Extract verb
   int len_verb = strcspn(command_buffer, " ");
-  char verb_tmp[10] = {0};
-  strncpy(verb_tmp, command_buffer, len_verb);
-  verb = verb_tmp;
+  command_buffer[len_verb] = '\0';
+  verb = command_buffer;
+  // printf("%c\n", verb[0]);
 
   // Extract noun
-  noun = command_buffer + len_verb;
+  noun = command_buffer + len_verb + 1;
+  int len_noun = strcspn(noun, "\n");
+  noun[len_noun] = '\0';
+  noun[0] = toupper(noun[0]);
 
   // Return proper command
   char *command_strings[UNKNOWN] = {"quit", "help", "go", "inventory", "look", "get", "drop"};
@@ -298,9 +321,5 @@ enum command get_command(void)
     }
   }
 
-  if (strlen(verb) - 1) {
-    return UNKNOWN;
-  }
-
-  return QUIT;
+  return UNKNOWN;
 }
