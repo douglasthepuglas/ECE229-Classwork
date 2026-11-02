@@ -26,7 +26,7 @@
 // exit[] array, so exit[N] is always the way north no matter what order they
 // are written in.
 enum direction { N, E, S, W };
-const char *directions[] = { "North", "East", "South", "East" };
+const char *directions_list[] = { "North", "East", "South", "West" };
 
 // The rooms, so everything below can say which room it means by name instead
 // of by number. A new room goes in both this enum and the map[] below, but
@@ -38,7 +38,7 @@ enum place { LIVING_ROOM, DINING_ROOM, KITCHEN, OFFICE, PANTRY };
 // recognise. get_command() returns one of these, so main() can switch on it
 // instead of picking the words apart again. UNKNOWN is what you give back for
 // anything else, including a blank line.
-enum command { QUIT, HELP, GO, INVENTORY, LOOK, GET, DROP, UNKNOWN };
+enum command { QUIT, HELP, GO, INVENTORY, LOOK, GET, DROP, MAKE, EAT, UNKNOWN };
 
 // room structure
 struct room {
@@ -102,9 +102,9 @@ struct room map[] = {
 struct item obj[] = {
   { "Spoon", &map[KITCHEN] },
   { "Napkin", &map[DINING_ROOM] },
-  { "Soup", &map[PANTRY] },
+  { "Soup Can", &map[PANTRY] },
   { "Bowl", &map[LIVING_ROOM] },
-  { "Letter Opener", &map[OFFICE] },
+  { "Can Opener", &map[OFFICE] },
   { "Pocket Fluff", NULL },
   { NULL, NULL } // null item to flag the end of the list
 };
@@ -112,6 +112,8 @@ struct item obj[] = {
 // function declarations
 void init_game(void);
 void game_help(void);    // prints basic instructions for use
+void look(int directions, int objects);
+// void go(void);
 
 // command proc
 enum command get_command(void); // returns QUIT when the player is done
@@ -142,49 +144,103 @@ int main(void) {
 
       case GO:
         enum direction chosen_direction;
+        int valid_direction_flag = 0;
         for (int i = N; i <= W; ++i) {
-          if (!strcmp(noun, directions[i])) {
+          if (!strcmp(noun, directions_list[i])) {
             chosen_direction = i;
+            valid_direction_flag = 1;
             break;
           }
         }
 
+        if (!valid_direction_flag) {
+          printf("Invalid direction.\n");
+          look(0, 0);
+          break;
+        }
+
         if (player_location -> exit[chosen_direction] != NULL) {
           player_location = player_location -> exit[chosen_direction];
-          printf("You are in the %s\n\n", player_location -> name);
+          look(0, 0);
+          break;
         }
+
+        printf("Nowhere %s you can go.\n", noun);
+        look(0, 0);
         break;
 
       case LOOK:
-        printf("You are in the %s.\nAvailable directions to travel: ", player_location -> name);
-        for (int i = N; i <= W; ++i) {
-          if (player_location -> exit[i] != NULL) {
-            printf("%s ", directions[i]);
-          }
-        }
-        printf("\n\n");
+        look(1, 1);
         break;
 
-      case INVENTORY:
+      case INVENTORY: {
         printf("You have: ");
         for (int i = 0; obj[i].name != NULL; ++i) {
             if (obj[i].location == NULL) {
                 printf("%s  ", obj[i].name);
             }
           }
+          printf("\n\n");
         break;
-
+        }
       case GET:
-        // TBD: find an item in this room whose name matches the noun and set
-        // its location to NULL. Say so, or say it isn't here.
-        printf("(get: not written yet, noun = \"%s\")\n", noun ? noun : "(none)");
+        if (!strcmp(noun, "\n")) {
+          printf("No object provided. Press help for help.\n\n");
+          break;
+        }
+        int chosen_item_get = 0; // index of item in obj[n].
+        int valid_item_flag_get = 0;
+        for (int i = 0; obj[i].name != NULL; ++i) {
+          if (!strcmp(noun, obj[i].name)) {
+            chosen_item_get = i;
+            valid_item_flag_get = 1;
+            break;
+          }
+        }
+
+        if (valid_item_flag_get && obj[chosen_item_get].location == player_location) {
+          obj[chosen_item_get].location = NULL;
+          printf("You have a %s.\n\n", obj[chosen_item_get]);
+          break;
+        }
+
+        printf("You don't see a %s here.\n\n", noun);
+
         break;
 
       case DROP:
-        // TBD: find a carried item whose name matches the noun and set its
-        // location to player_location. Say so, or say they don't have it.
-        printf("(drop: not written yet, noun = \"%s\")\n", noun ? noun : "(none)");
+        int chosen_item_drop = 0; // index of item in obj[n].
+        int valid_item_flag_drop = 0;
+        for (int i = 0; obj[i].name != NULL; ++i) {
+          if (!strcmp(noun, obj[i].name)) {
+            chosen_item_drop = i;
+            valid_item_flag_drop = 1;
+            break;
+          }
+        }
+
+        if (valid_item_flag_drop && obj[chosen_item_drop].location == NULL) {
+          obj[chosen_item_drop].location = player_location;
+          printf("You dropped a %s.\n\n", obj[chosen_item_drop]);
+          break;
+        }
+
+        printf("You don't have a %s.\n\n", noun);
         break;
+
+
+
+
+
+
+
+
+
+
+
+        //+++++++++++++++++CONTINUE HERE
+      case MAKE:
+        if
 
       case UNKNOWN:
       default:
@@ -195,7 +251,6 @@ int main(void) {
   }
 
   printf("Thanks for playing!\n");
-
   return 0;
 }
 
@@ -225,67 +280,6 @@ void game_help(void)
   return;
 }
 
-/* ---------------------------------------------------------------------------
-   get_command() -- read one line from the player and report what they asked
-   for. This one is yours, and it is the heart of the lab: everything in main()
-   is waiting on what you return from here.
-
-   A plan, in the order the work happens:
-
-     1. Print the prompt, so the player knows it is their turn. printf("\n> ")
-        is enough.
-
-     2. Read a line into command_buffer with fgets(), and CHECK WHAT IT
-        RETURNS. fgets() hands back NULL when there is no more input -- the
-        player pressed Ctrl+D, or a file being piped in ran out. Nothing else
-        is ever coming, so return QUIT when that happens. Skip this check and
-        fgets() leaves the *previous* command sitting in the buffer, which the
-        loop in main() then runs again, and again, forever. It is the single
-        most common way this lab hangs, and it does not hang quietly: a version
-        of this kit without the check printed fifty-six million lines in three
-        seconds.
-
-     3. fgets() keeps the newline the player typed, and "go\n" does not match
-        the word "go". Write a '\0' over it. strcspn(command_buffer, "\n")
-        tells you where it is.
-
-     4. Split the line into the verb (the first word) and the noun (the rest).
-        strchr() finds the first space; a '\0' written over that space ends the
-        verb, and what comes after it is the noun. Set noun to NULL when there
-        is no noun, because main() tests for exactly that. Take the WHOLE rest
-        of the line, not just the next word -- "Letter Opener" and "Pocket
-        Fluff" are two-word item names, and the example session types
-        "get paper clip".
-
-     5. Work out which command the verb names and return it. An array of
-        strings kept in the same order as enum command turns this into a short
-        loop: if names[GO] is "go", then the subscript you find the word at IS
-        the value to return. That is what an enum is for, and it is the same
-        trick as exit[N] in the map above. Keeping the two lists in step is
-        your job -- add a command and you add it in both places.
-
-     6. Return UNKNOWN for anything you don't recognise, including a blank
-        line. main() already prints a "don't know how" message for it.
-
-   One thing you will need on the way: the player types "get letter opener",
-   but the item is stored as "Letter Opener", so your comparisons have to
-   ignore capitals. strcmp() does not. strcasecmp() does, but it is not part of
-   standard C -- under -std=c99 it isn't even declared, and your compiler will
-   say so. tolower() from <ctype.h> is standard, and a function that walks two
-   strings a character at a time, lowering each one as it goes, is about four
-   lines long. Write it as its own function: you will want it again for the
-   item names in GET and DROP.
-   --------------------------------------------------------------------------- */
-// struct item obj[] = {
-//   { "Spoon", &map[KITCHEN] },
-//   { "Napkin", &map[DINING_ROOM] },
-//   { "Soup", &map[PANTRY] },
-//   { "Bowl", &map[LIVING_ROOM] },
-//   { "Letter Opener", &map[OFFICE] },
-//   { "Pocket Fluff", NULL },
-//   { NULL, NULL } // null item to flag the end of the list
-// };
-// enum command { QUIT, HELP, GO, INVENTORY, LOOK, GET, DROP, UNKNOWN };
 enum command get_command(void)
 {
   printf(">> ");
@@ -311,10 +305,18 @@ enum command get_command(void)
   noun = command_buffer + len_verb + 1;
   int len_noun = strcspn(noun, "\n");
   noun[len_noun] = '\0';
+
+  // Capitalize noun
   noun[0] = toupper(noun[0]);
+  int space_index = 0;
+  while (noun[space_index] != ' ' && noun[space_index] != '\0') {
+    ++space_index;
+  }
+
+  noun[space_index + 1] = toupper(noun[space_index + 1]);
 
   // Return proper command
-  char *command_strings[UNKNOWN] = {"quit", "help", "go", "inventory", "look", "get", "drop"};
+  char *command_strings[UNKNOWN] = {"quit", "help", "go", "inventory", "look", "get", "make", "eat", "drop"};
   for (enum command i = QUIT; i < UNKNOWN; ++i) {
     if (!strcmp(verb, command_strings[i])) {
         return i;
@@ -322,4 +324,27 @@ enum command get_command(void)
   }
 
   return UNKNOWN;
+}
+
+void look(int directions, int objects) {
+  printf("You are in the %s.", player_location -> name);
+
+  if (directions) {
+    printf("\nOpen directions: ");
+    for (int i = N; i <= W; ++i) {
+      if (player_location -> exit[i] != NULL) {
+        printf("%s   ", directions_list[i]);
+      }
+    }
+  }
+
+  if (objects) {
+    printf("\nYou see: ");
+    for (int i = 0; obj[i].name != NULL; ++i) {
+      if (obj[i].location == player_location) {
+        printf("%s    ", obj[i].name);
+      }
+    }
+  }
+  printf("\n\n");
 }
