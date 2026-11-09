@@ -89,10 +89,10 @@ struct room map[] = {
     .exit = { [W] = &map[KITCHEN] }
   },
   [NOT_CRAFTED] = { // Placeholder for items to be made later
-    .name = "\n",   // Impossible to enter as user, therefore safe character to use as placeholder
+    .name = "\n"   // Impossible to enter as user, therefore safe character to use as placeholder
   },
   [USED] = {
-
+    .name = '\0'
   }
 };
 
