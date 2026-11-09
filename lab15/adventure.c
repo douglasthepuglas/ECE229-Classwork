@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdbool.h>
+#include <stdlib.h>
 
 #define MAX_CHARS 100 // including terminator
 
@@ -32,13 +32,15 @@ const char *directions_list[] = { "North", "East", "South", "West" };
 // of by number. A new room goes in both this enum and the map[] below, but
 // then a slip is a compile error rather than a door that quietly opens
 // somewhere else.
-enum place { LIVING_ROOM, DINING_ROOM, KITCHEN, OFFICE, PANTRY };
+enum place { LIVING_ROOM, DINING_ROOM, KITCHEN, OFFICE, PANTRY, NOT_CRAFTED, USED };
 
 // Every command the game understands, and the list of words you have to
 // recognise. get_command() returns one of these, so main() can switch on it
 // instead of picking the words apart again. UNKNOWN is what you give back for
 // anything else, including a blank line.
 enum command { QUIT, HELP, GO, INVENTORY, LOOK, GET, DROP, MAKE, EAT, UNKNOWN };
+
+enum items { SPOON, NAPKIN, SOUP_CAN, BOWL, CAN_OPENER, BOWL_OF_SOUP };
 
 // room structure
 struct room {
@@ -86,7 +88,12 @@ struct room map[] = {
     .name = "Pantry",
     .exit = { [W] = &map[KITCHEN] }
   },
+  [NOT_CRAFTED] = { // Placeholder for items to be made later
+    .name = "\n",   // Impossible to enter as user, therefore safe character to use as placeholder
+  },
+  [USED] = {
 
+  }
 };
 
 // Initial objects and their locations. A NULL location means the player is
@@ -105,7 +112,7 @@ struct item obj[] = {
   { "Soup Can", &map[PANTRY] },
   { "Bowl", &map[LIVING_ROOM] },
   { "Can Opener", &map[OFFICE] },
-  { "Pocket Fluff", NULL },
+  { "Bowl of Soup", &map[NOT_CRAFTED] },
   { NULL, NULL } // null item to flag the end of the list
 };
 
@@ -113,7 +120,7 @@ struct item obj[] = {
 void init_game(void);
 void game_help(void);    // prints basic instructions for use
 void look(int directions, int objects);
-// void go(void);
+void capitalize_noun();
 
 // command proc
 enum command get_command(void); // returns QUIT when the player is done
@@ -132,7 +139,6 @@ int main(void) {
   init_game();
 
   printf("Welcome to the game!\n");
-  // TBD: Add intro text and initial instructions.
   game_help();
 
   while ((cmd = get_command()) != QUIT) {
@@ -143,6 +149,7 @@ int main(void) {
         break;
 
       case GO:
+        capitalize_noun();
         enum direction chosen_direction;
         int valid_direction_flag = 0;
         for (int i = N; i <= W; ++i) {
@@ -165,6 +172,7 @@ int main(void) {
           break;
         }
 
+        capitalize_noun();
         printf("Nowhere %s you can go.\n", noun);
         look(0, 0);
         break;
@@ -184,10 +192,12 @@ int main(void) {
         break;
         }
       case GET:
+        capitalize_noun();
         if (!strcmp(noun, "\n")) {
           printf("No object provided. Press help for help.\n\n");
           break;
         }
+
         int chosen_item_get = 0; // index of item in obj[n].
         int valid_item_flag_get = 0;
         for (int i = 0; obj[i].name != NULL; ++i) {
@@ -200,15 +210,17 @@ int main(void) {
 
         if (valid_item_flag_get && obj[chosen_item_get].location == player_location) {
           obj[chosen_item_get].location = NULL;
-          printf("You have a %s.\n\n", obj[chosen_item_get]);
+          printf("You have a %s.\n\n", obj[chosen_item_get].name);
           break;
         }
 
+        capitalize_noun();
         printf("You don't see a %s here.\n\n", noun);
 
         break;
 
       case DROP:
+        capitalize_noun();
         int chosen_item_drop = 0; // index of item in obj[n].
         int valid_item_flag_drop = 0;
         for (int i = 0; obj[i].name != NULL; ++i) {
@@ -221,26 +233,58 @@ int main(void) {
 
         if (valid_item_flag_drop && obj[chosen_item_drop].location == NULL) {
           obj[chosen_item_drop].location = player_location;
-          printf("You dropped a %s.\n\n", obj[chosen_item_drop]);
+          printf("You dropped a %s.\n\n", obj[chosen_item_drop].name);
           break;
         }
 
+        capitalize_noun();
         printf("You don't have a %s.\n\n", noun);
         break;
 
-
-
-
-
-
-
-
-
-
-
-        //+++++++++++++++++CONTINUE HERE
       case MAKE:
-        if
+        if (player_location != &map[KITCHEN]) {
+          printf("You cannot make that here.\n\n");
+          break;
+        }
+
+        if (strstr(noun, "soup") && strstr(noun, "bowl")) {
+          if (obj[SOUP_CAN].location == NULL && obj[BOWL].location == NULL && obj[CAN_OPENER].location == NULL) {
+            obj[BOWL_OF_SOUP].location = NULL;
+            printf("You made a Bowl of Soup.\n\n");
+            obj[SOUP_CAN].location = &map[USED];
+            obj[BOWL].location = &map[USED];
+            break;
+          }
+
+          printf("You do not have everything you need to make that.\n\n");
+          break;
+        }
+
+      case EAT:
+        if (obj[BOWL_OF_SOUP].location != NULL) {
+          printf("Nothing to eat.\n\n");
+          break;
+        }
+
+        if (player_location != &map[DINING_ROOM]) {
+          printf("You cannot eat that here.\n\n");
+          break;
+        }
+
+        enum items required_items[] = { SPOON, NAPKIN };
+        if (obj[SPOON].location != NULL) {
+          printf("Can't eat soup with your hands!\n\n");
+          break;
+        }
+
+        if (obj[NAPKIN].location != NULL) {
+          printf("What if you make a mess?\n\n");
+          break;
+        }
+
+        printf("You ate the soup. Delicious. YOU WIN!\n\n\n\n");
+        exit(0);
+        break;
 
       case UNKNOWN:
       default:
@@ -266,6 +310,7 @@ void game_help(void)
 {
   // enum command { QUIT, HELP, GO, INVENTORY, LOOK, GET, DROP, UNKNOWN };
   printf("\n"
+           "You are hungry and must eat. Find and prepare a meal.\n"
            "Enter command at \">> {Command}\"\n\n"
 
            "Commands:\n"
@@ -275,9 +320,20 @@ void game_help(void)
            "  Look:           Check your surroundings.\n"
            "  Get [object]:   Add object to your inventory.\n"
            "  Drop [object]:  Remove object from your inventory.\n"
+           "  Make [object]:  Make something new.\n"
+           "  Eat:            Eat.\n"
            "  Quit:           Exit game.\n\n"
           );
   return;
+}
+void capitalize_noun() {
+  noun[0] = toupper(noun[0]);
+  int space_index = 0;
+  while (noun[space_index] != ' ' && noun[space_index] != '\0') {
+    ++space_index;
+  }
+
+  noun[space_index + 1] = toupper(noun[space_index + 1]);
 }
 
 enum command get_command(void)
@@ -306,17 +362,8 @@ enum command get_command(void)
   int len_noun = strcspn(noun, "\n");
   noun[len_noun] = '\0';
 
-  // Capitalize noun
-  noun[0] = toupper(noun[0]);
-  int space_index = 0;
-  while (noun[space_index] != ' ' && noun[space_index] != '\0') {
-    ++space_index;
-  }
-
-  noun[space_index + 1] = toupper(noun[space_index + 1]);
-
   // Return proper command
-  char *command_strings[UNKNOWN] = {"quit", "help", "go", "inventory", "look", "get", "make", "eat", "drop"};
+  char *command_strings[] = {"quit", "help", "go", "inventory", "look", "get", "drop", "make", "eat"};
   for (enum command i = QUIT; i < UNKNOWN; ++i) {
     if (!strcmp(verb, command_strings[i])) {
         return i;
