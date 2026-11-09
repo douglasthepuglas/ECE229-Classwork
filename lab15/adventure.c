@@ -1,14 +1,6 @@
 /**************************************************
  * Lab:         Lab 15
- * Description: Text Adventure Starter kit
- *              You may use this starter kit for your text
- *              adventure for lab 15.
- *
- *              It compiles and runs as it stands, but it does
- *              not get far: get_command() is a stub that returns
- *              QUIT, so the game greets you and ends on the
- *              spot. Writing get_command() is the first job and
- *              the biggest one. The TBDs are yours.
+ * Description: Text adventure. Find things to make soup, eat soup, profit.
  * ***********************************************/
 
 // You will need all four of these: string.h for fgets() and the string
