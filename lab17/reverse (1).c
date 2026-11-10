@@ -11,15 +11,15 @@ int main(void)
     int ch;   /* getc() returns an int, not a char */
     FILE *fp;
     long count, last;
-    
+
     puts("Enter the name of the file to be processed:");
     scanf("%80s", file);
     if ((fp = fopen(file,"rb")) == NULL) { // binary read-only mode
         printf("reverse can't open %s\n", file);
         exit(EXIT_FAILURE);
     }
-    
-    fseek(fp, 0L, SEEK_END); // go to end of file 
+
+    fseek(fp, 0L, SEEK_END); // go to end of file
     last = ftell(fp);
     for (count = 1L; count <= last; count++){
         fseek(fp, -count, SEEK_END); /* go backward */
@@ -30,6 +30,6 @@ int main(void)
     }
     putchar('\n');
     fclose(fp);
-    
+
     return 0;
-} 
+}
