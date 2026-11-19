@@ -8,34 +8,44 @@
 #define MAX_LBL_LEN 10  // Longest name length a label can have
 
 typedef enum {
-    NONE,
-    VALUE,
-    ADDRESS,
-    STRING,
-} arg_type;
+    MODE_IMM,   // immediate            #$00
+    MODE_ZP,    // zero page            $00
+    MODE_ZPX,   // zero page x          $00,X
+    MODE_ZPY,   // zero page y          $00,Y
+    MODE_ABS,   // absolute             $0000
+    MODE_ABSX,  // absolute x           $0000,X
+    MODE_ABSY,  // absolute y           $0000,Y
+    MODE_IND,   // indirect             ($0000)
+    MODE_PXIND, // pre-inc indirect x   ($0000,x)   Worse DirectX?? Michaelsoft Binboes?
+    MODE_PYIND, // post-inc indirect y  ($0000,y)
+    MODE_IMP,   // no operand
+} address_mode;
 
-struct instruction {
+typedef struct {
     char mnemonic[4];
-    uint8_t opcodes[8]; // The most opcodes for any single mnemonic is 8
-    int *next;
-};
+    address_mode mode;
+    uint8_t opcode;
+    int line_number;
+} instruction;
 
-struct directive {
-    char operation[9]; // preemptively making this large enough to hold .include
-                       // in case I ever add that functionality
-    char *parameters;
-};
+// struct directive {
+//     char operation[9]; // preemptively making this large enough to hold .include
+//                        // in case I ever add that functionality
+//     char *parameters;
+// };
 
-struct label {
-    char name[MAX_LBL_LEN + 1];
-    uint16_t location;  // absolute location of label within file
-    int *next;
-};
-
-struct operand {
-
-};
-
-struct line {};
+instruction inst_table[] {
+   instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9}, // example
+   instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
+   instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
+   instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
+   instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
+   instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
+   instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
+   instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
+   instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
+   instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
+   instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
+}
 
 #endif
