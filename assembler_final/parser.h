@@ -3,6 +3,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <stdio.h>
 #include <stdint.h>
 
 #define MAX_COM_LEN 10  // Common longest length a label, definition, or
@@ -57,28 +58,15 @@ typedef struct {
     int line_number; /* Same case as instruction table */
 } directive;
 
-const instruction inst_table[] {
-   instruction{.mnemonic = "LDA", .mode = MODE_IMM,  .opcode = 0xA9},
-   instruction{.mnemonic = "LDA", .mode = MODE_ZP,   .opcode = 0xA5},
-   instruction{.mnemonic = "LDA", .mode = MODE_ZPX,  .opcode = 0xB5},
-   instruction{.mnemonic = "LDA", .mode = MODE_ABS,  .opcode = 0xAD},
-   instruction{.mnemonic = "LDA", .mode = MODE_ABSX, .opcode = 0XBD},
-   instruction{.mnemonic = "LDA", .mode = MODE_ABSY, .opcode = 0XB9},
-   instruction{.mnemonic = "LDA", .mode = MODE_INDX, .opcode = 0xA1},
-   instruction{.mnemonic = "LDA", .mode = MODE_IMM,  .opcode = 0xA9},
+//extern const
 
-   // Further values are placeholders until modified for more instructions
-//    instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
-//    instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
-//    instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
-};
+extern const instruction inst_table[];
 
-// Bring all of them into a union so functions can output any
-typedef union {
-    instruction;
+typedef enum {
+    LINE,
+    NEXT_STATE, // next statement
+} find_type;
 
-}
-// lineread();
-
+char *find(const char *cursor, find_type mode);
 
 #endif
