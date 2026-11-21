@@ -67,6 +67,7 @@ typedef enum {
     NEXT_STATE, // next statement
 } find_type;
 
-char *find(const char *cursor, find_type mode);
+char *find(char *cursor, find_type mode);
 
 #endif
+//s

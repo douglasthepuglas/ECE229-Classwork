@@ -22,26 +22,30 @@ const instruction inst_table[] = {
 //    instruction{.mnemonic = "LDA", .mode = MODE_IMM, .opcode = 0xA9},
 };
 
-char *find(const char *cursor, find_type mode) {
-    char *location = cursor;
-
+char *find(char *_cursor, find_type mode) {
     switch (mode) {
         case LINE: {
             while(1) {
-                if (*location == '\n') {return location + 1;}
-                if (*location == EOF)  {return NULL;}
-                ++location;
+                if (*_cursor == '\n') {return (_cursor + 1);}
+                if (*_cursor == '\0')  {return NULL;}
+                ++_cursor;
             }
         }
 
         case NEXT_STATE: {
             while(1) {
-                if (*location == EOF) {return NULL;} // Catch EOF before its returned
-                if (isalpha(location) || !strchr(*location, " \t")) {return location;}
-                ++location;
+                if (*_cursor == '\0') {return NULL;} // Catch EOF before its returned
+                if (isalpha(*_cursor) || !strchr(" \t", *_cursor)) {return _cursor;}
+                ++_cursor;
             }
+        }
+
+        default: {
+            return NULL;
+
         }
     }
 }
 
 
+//sd
