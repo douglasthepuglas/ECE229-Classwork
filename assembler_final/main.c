@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "parser.h"
 
+#define BUFFER_MAX 50 // number of chars;
 
 int main(int argc, char *argv[]) {
     FILE *src;  // source .asm file
@@ -14,6 +15,7 @@ int main(int argc, char *argv[]) {
     // Pointer to source file declared later as const; MUST HOLD ONTO THIS
     char *cursor = NULL; // Re-initialized later as "program" before each pass
     long file_size;
+    char ;
 
     // Error?
     if (argc == 1) {
@@ -46,14 +48,17 @@ int main(int argc, char *argv[]) {
     fread(program, sizeof(char), file_size, src);
     fclose(src);
 
+
+    // Print a few test chars to see if functions work
     #ifdef DEBUG
-    cursor = program;   // Took me a while to find that cursor wasn't initialized.
+    cursor = program; // Took me a while to find that cursor wasn't initialized.
     printf("%c\n", *cursor);
     cursor = find(cursor, LINE);
-
     printf("%c\n", *cursor);
     #endif
 
+    // Current State: Cursor is now at the start of the file
+    //
     // Check what type of line the assembler is about to parse.
     // *the following lines assume no error, but that'll be addressed
     //      -If the first character of a line is whitespace, must be instruction
@@ -67,8 +72,15 @@ int main(int argc, char *argv[]) {
     //                 label table
     // Check for errors at intersection points between checking for different
     // char types
-    //
 
-    return 0;
+    // Finally, the main loop
+    while (1) {
+        if (strchr(" \t", *cursor)) {
+            strip(cursor);
+        }
+
+
+        return 0;
+    }
 }
 //sss
