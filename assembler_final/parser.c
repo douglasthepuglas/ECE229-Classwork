@@ -47,5 +47,10 @@ char *find(char *_cursor, find_type mode) {
     }
 }
 
+char *strip(char *cursor) {
+    while (strchar(" \t", *cursor)) {++cursor;}
+    return *cursor;
+}
+
 
 //sd

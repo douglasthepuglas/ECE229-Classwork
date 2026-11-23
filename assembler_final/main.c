@@ -46,11 +46,28 @@ int main(int argc, char *argv[]) {
     fread(program, sizeof(char), file_size, src);
     fclose(src);
 
+    #ifdef DEBUG
     cursor = program;   // Took me a while to find that cursor wasn't initialized.
     printf("%c\n", *cursor);
     cursor = find(cursor, LINE);
 
     printf("%c\n", *cursor);
+    #endif
+
+    // Check what type of line the assembler is about to parse.
+    // *the following lines assume no error, but that'll be addressed
+    //      -If the first character of a line is whitespace, must be instruction
+    //        or . directive
+    //      -If first char is alpha, line must be either a label or symbol
+    //          -Therefore, load remaining chars in string into buffer until
+    //           one of two cases:
+    //              1. Whitespace OR =: skip whitespace until =, store following
+    //                 value and string in symbol table.
+    //              2. (:): store following string until whitespace or \n in
+    //                 label table
+    // Check for errors at intersection points between checking for different
+    // char types
+    //
 
     return 0;
 }

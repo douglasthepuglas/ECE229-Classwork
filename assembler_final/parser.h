@@ -58,8 +58,6 @@ typedef struct {
     int line_number; /* Same case as instruction table */
 } directive;
 
-//extern const
-
 extern const instruction inst_table[];
 
 typedef enum {
@@ -69,5 +67,6 @@ typedef enum {
 
 char *find(char *cursor, find_type mode);
 
+char *strip(char *cursor);
+
 #endif
-//s
