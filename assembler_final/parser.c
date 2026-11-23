@@ -48,9 +48,13 @@ char *find(char *_cursor, find_type mode) {
 }
 
 char *strip(char *cursor) {
-    while (strchar(" \t", *cursor)) {++cursor;}
-    return *cursor;
+    while (strchr(" \t", *cursor)) {
+        cursor++;
+    }
+    return cursor;
 }
+
+char *extract_
 
 
 //sd

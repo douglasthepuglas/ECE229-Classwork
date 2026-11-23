@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define MAX_COM_LEN 10  // Common longest length a label, definition, or
+#define MAX_COM_LEN 25  // Common longest length a label, symbol, or
                         // assembler directive name string can have
 
 // Address modes used across all instructions
@@ -25,6 +25,16 @@ typedef enum {
     MODE_IMP,   // no operand
 } address_mode;
 
+typedef enum {
+    OPERATION,
+    SYMBOL_DEF,
+    DIRECTIVE,
+    SPACE_START,
+    COLUMN_1,
+} instruction_type; // SPACE_START & COLUMN_1 as intermediate types.
+                    // Starting w/ space means must be directive or
+                    // instruction, while 
+
 // Container for individual instructions
 typedef struct {
     char mnemonic[4];
@@ -34,11 +44,11 @@ typedef struct {
                         individual tokens will copy template and add line num */
 } instruction;
 
-// User definitions (e.g. PORTB = $6000)
+// User symbol (e.g. PORTB = $6000)
 typedef struct {
     char name[MAX_COM_LEN];
     uint16_t value;
-} definition;
+} symbol;
 
 // Labels
 typedef struct {
@@ -58,7 +68,8 @@ typedef struct {
     int line_number; /* Same case as instruction table */
 } directive;
 
-extern const instruction inst_table[];
+extern const instruction inst_table[]; // stores all possible instructions and opcodes
+                                       // with their corresponding modes and syntax
 
 typedef enum {
     LINE,
@@ -68,5 +79,7 @@ typedef enum {
 char *find(char *cursor, find_type mode);
 
 char *strip(char *cursor);
+
+
 
 #endif

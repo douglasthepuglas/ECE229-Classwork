@@ -4,18 +4,23 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "parser.h"
-
-#define BUFFER_MAX 50 // number of chars;
 
 int main(int argc, char *argv[]) {
     FILE *src;  // source .asm file
-    FILE *dest; // destination .bin
+    //FILE *dest; // destination .bin
 
     // Pointer to source file declared later as const; MUST HOLD ONTO THIS
     char *cursor = NULL; // Re-initialized later as "program" before each pass
     long file_size;
-    char ;
+    char buffer[MAX_COM_LEN]; 
+
+    // Symbol table (eg PORTB = $number). reallocated if num_symbols = max_symbols
+    int max_symbols = 50;
+    symbol *symbol_table = malloc(max_symbols * sizeof(symbol));
+    int num_symbols = 0; // keep track of total number of symbols in case 
 
     // Error?
     if (argc == 1) {
@@ -33,7 +38,7 @@ int main(int argc, char *argv[]) {
     file_size = ftell(src);
     rewind(src);
 
-    const char *program = malloc(file_size * sizeof(char) + 1); // Buffer. yay
+    char *program = malloc(file_size * sizeof(char) + 1); // File buffer. yay
     if (program == NULL) {
         printf("Error: Could not allocate memory.\n");
         exit(EXIT_FAILURE);
@@ -48,10 +53,10 @@ int main(int argc, char *argv[]) {
     fread(program, sizeof(char), file_size, src);
     fclose(src);
 
-
+    cursor = program; // Took me a while to find that cursor wasn't initialized.
+    
     // Print a few test chars to see if functions work
     #ifdef DEBUG
-    cursor = program; // Took me a while to find that cursor wasn't initialized.
     printf("%c\n", *cursor);
     cursor = find(cursor, LINE);
     printf("%c\n", *cursor);
@@ -75,12 +80,19 @@ int main(int argc, char *argv[]) {
 
     // Finally, the main loop
     while (1) {
-        if (strchr(" \t", *cursor)) {
-            strip(cursor);
+        instruction_type type_flag;
+        cursor = strip(cursor);
+
+        #ifdef DEBUG
+        printf("%c\n", *cursor);
+        #endif 
+
+        if (isalpha(*cursor)) {
+            
         }
-
-
-        return 0;
     }
+    
+    return 0;
 }
+
 //sss
