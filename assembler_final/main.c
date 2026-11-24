@@ -79,8 +79,8 @@ int main(int argc, char *argv[]) {
     // char types
 
     // Finally, the main loop
-    //while (1) {
-        //instruction_type type_flag;
+    while (1) {
+        instruction_type type_flag;
         cursor = strip(cursor);
 
         #ifdef DEBUG
@@ -90,8 +90,10 @@ int main(int argc, char *argv[]) {
         if (isalpha(*cursor)) {
             cursor = extract_string(cursor, buffer);
         }
+        #ifdef DEBUG 
         printf("\"%s\", \"%c\"\n", buffer, *cursor);
-    //}
+        #endif
+    }
     
     return 0;
 }
