@@ -54,7 +54,24 @@ char *strip(char *cursor) {
     return cursor;
 }
 
-char *extract_
+// Dump the string for the operation/directive into buffer
+// Name will enter the same buffer pointer as supplied while 
+// function returns the pointer to keep track of location.
+char *extract_string(char *cursor, char *buffer) {
+    int length_string = 0; // No need to return
+    char *temp_cursor = cursor;
+    for (; isalpha(*temp_cursor); ++temp_cursor) {++length_string;}
+    if (length_string < MAX_COM_LEN) {
+        for (int i = 0; i < length_string; ++i) {
+            buffer[i] = cursor[i];
+        }
+        buffer[length_string] = '\0';
+        //printf("%s", buffer);
+        return cursor + length_string;
+    }
+    buffer = NULL;
+    return NULL;
+}
 
 
 //sd

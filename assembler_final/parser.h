@@ -6,8 +6,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define MAX_COM_LEN 25  // Common longest length a label, symbol, or
-                        // assembler directive name string can have
+#define MAX_COM_LEN 26  // Common longest length a label, symbol, or
+                        // assembler directive name string can have 
+                        // assumes the line has been stripped.// including null (25 chars max)
 
 // Address modes used across all instructions
 // $00 and $0000 used purely as placeholder examples.
@@ -80,6 +81,6 @@ char *find(char *cursor, find_type mode);
 
 char *strip(char *cursor);
 
-
+char *extract_string(char *cursor, char *buffer);
 
 #endif
