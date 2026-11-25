@@ -30,8 +30,7 @@ typedef enum {
     OPERATION,
     SYMBOL_DEF,
     DIRECTIVE,
-    SPACE_START,
-    COLUMN_1,
+    LABEL
 } instruction_type; // SPACE_START & COLUMN_1 as intermediate types.
                     // Starting w/ space means must be directive or
                     // instruction, while 
@@ -54,7 +53,7 @@ typedef struct {
 // Labels
 typedef struct {
     char name[MAX_COM_LEN];
-    uint16_t location;
+    uint16_t location; // program counter where it appears.
 } label;
 
 // Union for pointer type directive.

@@ -12,15 +12,20 @@ int main(int argc, char *argv[]) {
     FILE *src;  // source .asm file
     //FILE *dest; // destination .bin
 
-    // Pointer to source file declared later as const; MUST HOLD ONTO THIS
-    char *cursor = NULL; // Re-initialized later as "program" before each pass
-    long file_size;
-    char buffer[MAX_COM_LEN]; 
+    // Pointer to program start declared later as const; MUST HOLD ONTO THIS
+    long     file_size;
+    char     buffer[MAX_COM_LEN];
+    int      line_number = 1;
+    uint16_t program_counter;
 
-    // Symbol table (eg PORTB = $number). reallocated if num_symbols = max_symbols
-    int max_symbols = 50;
-    symbol *symbol_table = malloc(max_symbols * sizeof(symbol));
-    int num_symbols = 0; // keep track of total number of symbols in case 
+    // Symbol and label tables (e.g. PORTB = $00 or LOOP: respectively)
+    // These max values will increment & realloc if table fills.
+    int     symbols_max  = 50; 
+    int     labels_max   = 50;
+    symbol *symbol_table = malloc(symbols_max * sizeof(symbol));
+    label  *label_table  = malloc(labels_max * sizeof(label));
+    int     num_symbols  = 0; // keep track of numbers of each to know when full
+    int     num_labels   = 0;
 
     // Error?
     if (argc == 1) {
@@ -38,8 +43,8 @@ int main(int argc, char *argv[]) {
     file_size = ftell(src);
     rewind(src);
 
-    char *program = malloc(file_size * sizeof(char) + 1); // File buffer. yay
-    if (program == NULL) {
+    char *cursor = malloc(file_size * sizeof(char) + 1); // File buffer. yay
+    if (cursor == NULL) {
         printf("Error: Could not allocate memory.\n");
         exit(EXIT_FAILURE);
     }
@@ -50,11 +55,11 @@ int main(int argc, char *argv[]) {
     }
     #endif
 
-    fread(program, sizeof(char), file_size, src);
+    fread(cursor, sizeof(char), file_size, src);
     fclose(src);
 
-    cursor = program; // Took me a while to find that cursor wasn't initialized.
-    
+    const char *program = cursor; // Create permanent reference to prog start
+
     // Print a few test chars to see if functions work
     #ifdef DEBUG
     printf("%c\n", *cursor);
@@ -79,10 +84,24 @@ int main(int argc, char *argv[]) {
     // char types
 
     // Finally, the main loop
-    while (1) {
+    //while (1) {
+        // This is done before the line is stripped
         instruction_type type_flag;
-        cursor = strip(cursor);
-
+        if (isalpha(*cursor)) {
+            cursor = extract_string(cursor, buffer);
+            if (*cursor == ':') {
+                type_flag = LABEL;
+                int char_overflow = snprintf(label_table[num_labels].name, //...
+                                    sizeof(MAX_COM_LEN), "%s", buffer);
+                if (char_overflow != 0) {
+                    //error
+                }
+                label_table[num_labels].location = program_counter;
+                ++program_counter;
+                ++num_labels;
+            }
+        }
+        
         #ifdef DEBUG
         printf("%c\n", *cursor);
         #endif 
@@ -90,10 +109,13 @@ int main(int argc, char *argv[]) {
         if (isalpha(*cursor)) {
             cursor = extract_string(cursor, buffer);
         }
-        #ifdef DEBUG 
+
         printf("\"%s\", \"%c\"\n", buffer, *cursor);
-        #endif
-    }
+
+        // Need to 
+
+        ++line_number;
+    //}
     
     return 0;
 }
